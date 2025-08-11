@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>台灣音樂祭活動搜索</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap");
+
+      body {
+        font-family: "Noto Sans TC", sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
+
+      .glass-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      }
+
+      .event-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+      }
+
+      .event-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      }
+
+      .city-tag {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+
+      .performer-highlight {
+        background: linear-gradient(45deg, #ff6b6b, #feca57);
+        color: white;
+        padding: 2px 6px;
+        border-radius: 8px;
+        font-weight: 600;
+      }
+
+      .filter-section {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(15px);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .search-input {
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid transparent;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+      }
+
+      .search-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .loading-spinner {
+        display: none;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #667eea;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 1rem;
+        text-align: center;
+      }
+
+      .fade-in {
+        animation: fadeIn 0.5s ease-in;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .hero-section {
+        background: linear-gradient(
+          135deg,
+          rgba(102, 126, 234, 0.8) 0%,
+          rgba(118, 75, 162, 0.8) 100%
+        );
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        color: white;
+      }
+
+      .chart-container {
+        height: 300px;
+        position: relative;
+      }
+
+      .chart-title {
+        color: white;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      /* 摺疊圖表樣式 */
+      details[open] summary ~ * {
+        animation: slideDown 0.3s ease-out;
+      }
+
+      details summary {
+        list-style: none;
+        outline: none;
+      }
+
+      details summary::-webkit-details-marker {
+        display: none;
+      }
+
+      details summary:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          max-height: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          max-height: 400px;
+          transform: translateY(0);
+        }
+      }
+
+      .chart-stats {
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.8);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Hero Section -->
+    <div class="container mx-auto px-4 py-8">
+      <div class="hero-section p-8 mb-8 text-center">
+        <h1 class="text-4xl md:text-6xl font-bold mb-4">
+          <i class="fas fa-music mr-4"></i>
+          台灣音樂祭搜索
+        </h1>
+        <p class="text-xl md:text-2xl opacity-90">
+          探索台灣各地精彩的音樂祭活動
+        </p>
+      </div>
+
+      <!-- Stats Section -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="stats-card">
+          <div class="text-2xl font-bold" id="total-events">載入中...</div>
+          <div class="text-sm opacity-90">總活動數</div>
+        </div>
+        <div class="stats-card">
+          <div class="text-2xl font-bold" id="filtered-events">0</div>
+          <div class="text-sm opacity-90">符合條件</div>
+        </div>
+        <div class="stats-card">
+          <div class="text-2xl font-bold" id="cities-count">0</div>
+          <div class="text-sm opacity-90">涵蓋縣市</div>
+        </div>
+        <div class="stats-card">
+          <div class="text-2xl font-bold" id="current-month">
+            {{ date.today().strftime('%m') }}月
+          </div>
+          <div class="text-sm opacity-90">當前月份</div>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- City Distribution Chart -->
+        <div class="glass-card">
+          <details class="group" open>
+            <summary
+              class="cursor-pointer p-6 hover:bg-white hover:bg-opacity-10 transition-colors rounded-t-lg"
+            >
+              <div class="flex items-center justify-between">
+                <h3
+                  id="city-chart-title"
+                  class="text-xl font-bold chart-title flex items-center"
+                >
+                  <i class="fas fa-map-marked-alt mr-2"></i>
+                  地區活動分布
+                  <span
+                    id="city-chart-stats"
+                    class="text-sm opacity-75 ml-2"
+                  ></span>
+                </h3>
+                <i
+                  class="fas fa-chevron-down group-open:rotate-180 transition-transform duration-200"
+                ></i>
+              </div>
+            </summary>
+            <div class="px-6 pb-6">
+              <div
+                class="bg-white bg-opacity-95 rounded-lg p-4 chart-container"
+              >
+                <canvas id="cityChart"></canvas>
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <!-- Timeline Chart -->
+        <div class="glass-card">
+          <details class="group" open>
+            <summary
+              class="cursor-pointer p-6 hover:bg-white hover:bg-opacity-10 transition-colors rounded-t-lg"
+            >
+              <div class="flex items-center justify-between">
+                <h3
+                  id="timeline-chart-title"
+                  class="text-xl font-bold chart-title flex items-center"
+                >
+                  <i class="fas fa-chart-line mr-2"></i>
+                  時間趨勢分析
+                  <span
+                    id="timeline-chart-stats"
+                    class="text-sm opacity-75 ml-2"
+                  ></span>
+                </h3>
+                <i
+                  class="fas fa-chevron-down group-open:rotate-180 transition-transform duration-200"
+                ></i>
+              </div>
+            </summary>
+            <div class="px-6 pb-6">
+              <div
+                class="bg-white bg-opacity-95 rounded-lg p-4 chart-container"
+              >
+                <canvas id="timelineChart"></canvas>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <!-- Filters Sidebar -->
+        <div class="lg:col-span-1">
+          <div class="filter-section p-6 sticky top-4">
+            <h2 class="text-xl font-bold text-white mb-6 flex items-center">
+              <i class="fas fa-filter mr-2"></i>
+              搜索過濾
+            </h2>
+
+            <!-- Search Input -->
+            <div class="mb-6">
+              <label class="block text-white text-sm font-medium mb-2">
+                <i class="fas fa-search mr-1"></i>
+                搜索演出者
+              </label>
+              <input
+                type="text"
+                id="search-input"
+                class="search-input w-full px-4 py-3 focus:outline-none focus:ring-0"
+                placeholder="輸入演出者名稱..."
+              />
+            </div>
+
+            <!-- Event Name Search Input -->
+            <div class="mb-6">
+              <label class="block text-white text-sm font-medium mb-2">
+                <i class="fas fa-music mr-1"></i>
+                搜索活動名稱
+              </label>
+              <input
+                type="text"
+                id="event-name-search"
+                class="search-input w-full px-4 py-3 focus:outline-none focus:ring-0"
+                placeholder="輸入活動名稱..."
+              />
+            </div>
+
+            <!-- Date Range -->
+            <div class="mb-6">
+              <label class="block text-white text-sm font-medium mb-2">
+                <i class="fas fa-calendar mr-1"></i>
+                日期範圍
+              </label>
+              <div class="grid grid-cols-2 gap-2">
+                <input
+                  type="date"
+                  id="start-date"
+                  class="search-input px-3 py-2 text-sm focus:outline-none focus:ring-0"
+                />
+                <input
+                  type="date"
+                  id="end-date"
+                  class="search-input px-3 py-2 text-sm focus:outline-none focus:ring-0"
+                />
+              </div>
+            </div>
+
+            <!-- City Selection -->
+            <div class="mb-6">
+              <label class="block text-white text-sm font-medium mb-2">
+                <i class="fas fa-map-marker-alt mr-1"></i>
+                選擇縣市
+              </label>
+              <div
+                class="max-h-48 overflow-y-auto bg-white bg-opacity-90 rounded-lg p-3"
+              >
+                <div id="city-checkboxes">
+                  <!-- Cities will be populated by JavaScript -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Sort Options -->
+            <div class="mb-6">
+              <label class="block text-white text-sm font-medium mb-2">
+                <i class="fas fa-sort mr-1"></i>
+                排序方式
+              </label>
+              <select
+                id="sort-select"
+                class="search-input w-full px-4 py-3 focus:outline-none focus:ring-0"
+              >
+                <option value="date_asc">日期（近到遠）</option>
+                <option value="date_desc">日期（遠到近）</option>
+                <option value="name_asc">活動名稱（A-Z）</option>
+                <option value="name_desc">活動名稱（Z-A）</option>
+              </select>
+            </div>
+
+            <!-- Clear Filters Button -->
+            <button
+              id="clear-filters"
+              class="w-full bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-lg transition duration-300 flex items-center justify-center"
+            >
+              <i class="fas fa-eraser mr-2"></i>
+              清除篩選
+            </button>
+          </div>
+        </div>
+
+        <!-- Events List -->
+        <div class="lg:col-span-3">
+          <div class="loading-spinner" id="loading-spinner"></div>
+
+          <div id="no-results" class="hidden text-center py-12">
+            <div class="glass-card p-8">
+              <i class="fas fa-search text-4xl text-gray-400 mb-4"></i>
+              <h3 class="text-xl font-semibold text-gray-600 mb-2">
+                沒有找到符合條件的活動
+              </h3>
+              <p class="text-gray-500">請嘗試調整搜索條件</p>
+            </div>
+          </div>
+
+          <div id="events-container" class="space-y-6">
+            <!-- Events will be populated by JavaScript -->
+          </div>
+
+          <!-- Load More Button -->
+          <div class="text-center mt-8">
+            <button
+              id="load-more"
+              class="hidden bg-white bg-opacity-20 hover:bg-opacity-30 text-white py-3 px-8 rounded-full transition duration-300"
+            >
+              載入更多
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-16 py-8 text-center text-white">
+      <div class="container mx-auto px-4">
+        <p class="opacity-75">© 2025 台灣音樂祭搜索 | 探索音樂，享受生活</p>
+      </div>
+    </footer>
+
+    <script>
+      class MusicFestivalApp {
+        constructor() {
+          this.currentPage = 1;
+          this.eventsPerPage = 12;
+          this.allEvents = [];
+          this.filteredEvents = [];
+          this.searchTimeout = null;
+          this.dateRange = { min_date: null, max_date: null };
+          this.cityChart = null;
+          this.timelineChart = null;
+          this.initialize();
+        }
+
+        async initialize() {
+          await this.loadStats();
+          await this.loadCities();
+          this.setupEventListeners();
+          await this.loadEvents();
+          await this.initializeCharts();
+        }
+
+        async loadStats() {
+          try {
+            const response = await fetch("/api/stats");
+            const data = await response.json();
+
+            // 設置總活動數為資料庫的真實總數（與圖表分母保持一致）
+            document.getElementById("total-events").textContent =
+              data.total_events;
+
+            document.getElementById("cities-count").textContent =
+              data.cities.length;
+
+            if (data.date_range.min_date && data.date_range.max_date) {
+              this.dateRange = data.date_range;
+
+              const startDateInput = document.getElementById("start-date");
+              const endDateInput = document.getElementById("end-date");
+
+              startDateInput.value = data.date_range.min_date;
+              endDateInput.value = data.date_range.max_date;
+
+              startDateInput.min = data.date_range.min_date;
+              startDateInput.max = data.date_range.max_date;
+              endDateInput.min = data.date_range.min_date;
+              endDateInput.max = data.date_range.max_date;
+            }
+          } catch (error) {
+            console.error("Error loading stats:", error);
+          }
+        }
+
+        async loadCities() {
+          try {
+            const response = await fetch("/api/stats");
+            const data = await response.json();
+
+            const cityCheckboxes = document.getElementById("city-checkboxes");
+            cityCheckboxes.innerHTML = "";
+
+            data.cities.forEach((city) => {
+              const div = document.createElement("div");
+              div.className = "flex items-center mb-2";
+              div.innerHTML = `
+                            <input type="checkbox" id="city-${city}" value="${city}" 
+                                   class="mr-2 rounded focus:ring-2 focus:ring-blue-500">
+                            <label for="city-${city}" class="text-sm cursor-pointer">${city}</label>
+                        `;
+              cityCheckboxes.appendChild(div);
+            });
+          } catch (error) {
+            console.error("Error loading cities:", error);
+          }
+        }
+
+        setupEventListeners() {
+          document
+            .getElementById("search-input")
+            .addEventListener("input", (e) => {
+              clearTimeout(this.searchTimeout);
+              this.searchTimeout = setTimeout(() => this.loadEvents(), 300);
+            });
+
+          document
+            .getElementById("event-name-search")
+            .addEventListener("input", (e) => {
+              clearTimeout(this.searchTimeout);
+              this.searchTimeout = setTimeout(() => this.loadEvents(), 300);
+            });
+
+          const startDateInput = document.getElementById("start-date");
+          const endDateInput = document.getElementById("end-date");
+
+          startDateInput.addEventListener("change", (e) => {
+            endDateInput.min = e.target.value;
+            this.loadEvents();
+          });
+
+          endDateInput.addEventListener("change", (e) => {
+            startDateInput.max = e.target.value;
+            this.loadEvents();
+          });
+
+          document
+            .getElementById("sort-select")
+            .addEventListener("change", () => this.loadEvents());
+
+          document
+            .getElementById("city-checkboxes")
+            .addEventListener("change", () => this.loadEvents());
+
+          document
+            .getElementById("clear-filters")
+            .addEventListener("click", () => this.clearFilters());
+
+          document
+            .getElementById("load-more")
+            .addEventListener("click", () => this.loadMoreEvents());
+        }
+
+        async loadEvents() {
+          this.showLoading();
+          this.currentPage = 1;
+
+          try {
+            const params = new URLSearchParams();
+
+            const searchTerm = document.getElementById("search-input").value;
+            const eventNameSearch =
+              document.getElementById("event-name-search").value;
+            const startDate = document.getElementById("start-date").value;
+            const endDate = document.getElementById("end-date").value;
+            const sortBy = document.getElementById("sort-select").value;
+
+            if (searchTerm) params.append("search_term", searchTerm);
+            if (eventNameSearch)
+              params.append("event_name_search", eventNameSearch);
+            if (startDate) params.append("start_date", startDate);
+            if (endDate) params.append("end_date", endDate);
+            params.append("sort", sortBy);
+
+            const selectedCities = Array.from(
+              document.querySelectorAll("#city-checkboxes input:checked")
+            ).map((cb) => cb.value);
+            selectedCities.forEach((city) => params.append("cities", city));
+
+            // 載入活動數據
+            const response = await fetch(`/api/events?${params}`);
+            const data = await response.json();
+
+            this.allEvents = data.events;
+            this.filteredEvents = [...this.allEvents];
+
+            // 統一設置統計數據
+            document.getElementById("filtered-events").textContent =
+              data.total_count;
+
+            // 如果是初始載入（無過濾條件），也設置總活動數
+            const hasFilters =
+              searchTerm ||
+              eventNameSearch ||
+              startDate ||
+              endDate ||
+              selectedCities.length > 0;
+            if (!hasFilters) {
+              document.getElementById("total-events").textContent =
+                data.total_count;
+            }
+
+            this.renderEvents();
+
+            // 同時更新圖表，使用相同的過濾參數
+            await this.updateCharts(params.toString());
+          } catch (error) {
+            console.error("Error loading events:", error);
+          } finally {
+            this.hideLoading();
+          }
+        }
+
+        async updateCharts(paramString) {
+          try {
+            // 同時更新兩個圖表
+            await Promise.all([
+              this.loadCityChart(paramString),
+              this.loadTimelineChart(paramString),
+            ]);
+          } catch (error) {
+            console.error("Error updating charts:", error);
+          }
+        }
+
+        renderEvents() {
+          const container = document.getElementById("events-container");
+          const noResults = document.getElementById("no-results");
+          const loadMoreBtn = document.getElementById("load-more");
+
+          if (this.filteredEvents.length === 0) {
+            container.innerHTML = "";
+            noResults.classList.remove("hidden");
+            loadMoreBtn.classList.add("hidden");
+            return;
+          }
+
+          noResults.classList.add("hidden");
+
+          const eventsToShow = this.filteredEvents.slice(
+            0,
+            this.currentPage * this.eventsPerPage
+          );
+          container.innerHTML = "";
+
+          eventsToShow.forEach((event, index) => {
+            const eventCard = this.createEventCard(event);
+            eventCard.style.animationDelay = `${
+              (index % this.eventsPerPage) * 0.1
+            }s`;
+            container.appendChild(eventCard);
+          });
+
+          if (eventsToShow.length < this.filteredEvents.length) {
+            loadMoreBtn.classList.remove("hidden");
+          } else {
+            loadMoreBtn.classList.add("hidden");
+          }
+        }
+
+        createEventCard(event) {
+          const card = document.createElement("div");
+          card.className = "event-card p-6 fade-in";
+
+          const dates =
+            event.event_dates.length > 0
+              ? event.event_dates.join(", ")
+              : "日期待定";
+
+          // 處理演出者高亮
+          const performers = event.performers
+            .map((p) => {
+              const searchTerm = document.getElementById("search-input").value;
+              if (
+                searchTerm &&
+                p.toLowerCase().includes(searchTerm.toLowerCase())
+              ) {
+                return `<span class="performer-highlight">${p}</span>`;
+              }
+              return p;
+            })
+            .join("、");
+
+          // 處理活動名稱高亮
+          let eventName = event.event_name;
+          const eventNameSearch =
+            document.getElementById("event-name-search").value;
+          if (
+            eventNameSearch &&
+            eventName.toLowerCase().includes(eventNameSearch.toLowerCase())
+          ) {
+            const regex = new RegExp(`(${eventNameSearch})`, "gi");
+            eventName = eventName.replace(
+              regex,
+              '<span class="performer-highlight">$1</span>'
+            );
+          }
+
+          const ticketPrices =
+            Array.isArray(event.ticket_prices) && event.ticket_prices.length > 0
+              ? event.ticket_prices.join("、")
+              : "票價待定";
+
+          card.innerHTML = `
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <div class="md:w-1/3">
+                            <h3 class="text-xl font-bold text-gray-800 mb-3">${eventName}</h3>
+                            <div class="space-y-2 text-sm text-gray-600">
+                                <p><i class="fas fa-calendar text-blue-500 mr-2"></i>${dates}</p>
+                                <p><i class="fas fa-map-marker-alt text-red-500 mr-2"></i>${
+                                  event.location
+                                } 
+                                   <span class="city-tag ml-2">${
+                                     event.city
+                                   }</span></p>
+                                <p><i class="fas fa-ticket-alt text-green-500 mr-2"></i>${ticketPrices}</p>
+                            </div>
+                        </div>
+                        <div class="md:w-2/3">
+                            <div class="mb-4">
+                                <h4 class="font-semibold text-gray-700 mb-2 flex items-center">
+                                    <i class="fas fa-microphone text-purple-500 mr-2"></i>演出陣容
+                                </h4>
+                                <div class="text-sm text-gray-600 leading-relaxed">
+                                    ${performers || "演出者待定"}
+                                </div>
+                            </div>
+                            ${
+                              event.text
+                                ? `
+                                <details class="group">
+                                    <summary class="cursor-pointer text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                        查看活動詳情
+                                    </summary>
+                                    <div class="mt-2 p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
+                                        ${event.text.substring(0, 300)}${
+                                    event.text.length > 300 ? "..." : ""
+                                  }
+                                    </div>
+                                </details>
+                            `
+                                : ""
+                            }
+                            ${
+                              event.post_url
+                                ? `
+                                <div class="mt-4">
+                                    <a href="${event.post_url}" target="_blank" 
+                                       class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:from-pink-600 hover:to-purple-700 transition duration-300">
+                                        <i class="fab fa-instagram mr-2"></i>
+                                        在 Instagram 查看
+                                    </a>
+                                </div>
+                            `
+                                : ""
+                            }
+                        </div>
+                    </div>
+                `;
+
+          return card;
+        }
+
+        loadMoreEvents() {
+          this.currentPage++;
+          this.renderEvents();
+        }
+
+        clearFilters() {
+          document.getElementById("search-input").value = "";
+          document.getElementById("event-name-search").value = "";
+          if (this.dateRange.min_date && this.dateRange.max_date) {
+            const startDateInput = document.getElementById("start-date");
+            const endDateInput = document.getElementById("end-date");
+
+            startDateInput.value = this.dateRange.min_date;
+            endDateInput.value = this.dateRange.max_date;
+
+            startDateInput.min = this.dateRange.min_date;
+            startDateInput.max = this.dateRange.max_date;
+            endDateInput.min = this.dateRange.min_date;
+            endDateInput.max = this.dateRange.max_date;
+          }
+          document.getElementById("sort-select").value = "date_asc";
+
+          document.querySelectorAll("#city-checkboxes input").forEach((cb) => {
+            cb.checked = false;
+          });
+
+          this.loadEvents();
+        }
+
+        showLoading() {
+          document.getElementById("loading-spinner").style.display = "block";
+          document.getElementById("events-container").style.opacity = "0.5";
+        }
+
+        hideLoading() {
+          document.getElementById("loading-spinner").style.display = "none";
+          document.getElementById("events-container").style.opacity = "1";
+        }
+
+        async initializeCharts() {
+          await this.loadCityChart();
+          await this.loadTimelineChart();
+        }
+
+        async loadCityChart(params = null) {
+          try {
+            let url = "/api/charts/city";
+            if (params) {
+              url += `?${params}`;
+            }
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            const ctx = document.getElementById("cityChart").getContext("2d");
+
+            // 銷毀現有圖表（如果存在）
+            if (this.cityChart) {
+              this.cityChart.destroy();
+            }
+
+            // 使用新的數據格式
+            const chartData = data.chart_data || data;
+
+            this.cityChart = new Chart(ctx, {
+              type: "doughnut",
+              data: {
+                labels: chartData.labels,
+                datasets: [
+                  {
+                    label: "活動數量",
+                    data: chartData.data,
+                    backgroundColor: [
+                      "#FF6384",
+                      "#36A2EB",
+                      "#FFCE56",
+                      "#4BC0C0",
+                      "#9966FF",
+                      "#FF9F40",
+                      "#FF6384",
+                      "#C9CBCF",
+                      "#4BC0C0",
+                      "#36A2EB",
+                      "#FFCE56",
+                    ],
+                    borderWidth: 2,
+                    borderColor: "#fff",
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: "bottom",
+                    labels: {
+                      padding: 20,
+                      usePointStyle: true,
+                    },
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        const total = context.dataset.data.reduce(
+                          (a, b) => a + b,
+                          0
+                        );
+                        const percentage = (
+                          (context.parsed * 100) /
+                          total
+                        ).toFixed(1);
+                        return `${context.label}: ${context.parsed} 個活動 (${percentage}%)`;
+                      },
+                    },
+                  },
+                },
+              },
+            });
+
+            // 更新圖表標題顯示過濾狀態
+            this.updateChartTitle("city", data);
+          } catch (error) {
+            console.error("Error loading city chart:", error);
+          }
+        }
+
+        async loadTimelineChart(params = null) {
+          try {
+            let url = "/api/charts/timeline";
+            if (params) {
+              url += `?${params}`;
+            }
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            const ctx = document
+              .getElementById("timelineChart")
+              .getContext("2d");
+
+            // 銷毀現有圖表（如果存在）
+            if (this.timelineChart) {
+              this.timelineChart.destroy();
+            }
+
+            // 使用新的數據格式
+            const chartData = data.chart_data || data;
+
+            this.timelineChart = new Chart(ctx, {
+              type: "line",
+              data: {
+                labels: chartData.labels,
+                datasets: [
+                  {
+                    label: "活動數量",
+                    data: chartData.data,
+                    borderColor: "#667eea",
+                    backgroundColor: "rgba(102, 126, 234, 0.1)",
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: "#667eea",
+                    pointBorderColor: "#fff",
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    display: false,
+                  },
+                  tooltip: {
+                    mode: "index",
+                    intersect: false,
+                    callbacks: {
+                      label: function (context) {
+                        return `${context.parsed.y} 個活動`;
+                      },
+                    },
+                  },
+                },
+                scales: {
+                  x: {
+                    display: true,
+                    title: {
+                      display: true,
+                      text: "時間",
+                    },
+                    grid: {
+                      display: false,
+                    },
+                  },
+                  y: {
+                    display: true,
+                    title: {
+                      display: true,
+                      text: "活動數量",
+                    },
+                    beginAtZero: true,
+                    grid: {
+                      color: "rgba(0,0,0,0.1)",
+                    },
+                  },
+                },
+                interaction: {
+                  mode: "nearest",
+                  axis: "x",
+                  intersect: false,
+                },
+              },
+            });
+
+            // 更新圖表標題顯示過濾狀態
+            this.updateChartTitle("timeline", data);
+          } catch (error) {
+            console.error("Error loading timeline chart:", error);
+          }
+        }
+
+        updateChartTitle(chartType, data) {
+          const titleId =
+            chartType === "city" ? "city-chart-title" : "timeline-chart-title";
+          const statsId =
+            chartType === "city" ? "city-chart-stats" : "timeline-chart-stats";
+          const titleElement = document.getElementById(titleId);
+          const statsElement = document.getElementById(statsId);
+
+          if (titleElement && statsElement) {
+            const originalTitle =
+              chartType === "city" ? "地區活動分布" : "時間趨勢分析";
+            const iconClass =
+              chartType === "city" ? "map-marked-alt" : "chart-line";
+
+            // 更新主標題（保持簡潔）
+            titleElement.innerHTML = `
+              <i class="fas fa-${iconClass} mr-2"></i>
+              ${originalTitle}
+              <span id="${statsId}" class="text-sm opacity-75 ml-2"></span>
+            `;
+
+            // 更新統計數據
+            const statsSpan = document.getElementById(statsId);
+            if (statsSpan) {
+              if (this.hasFiltersApplied()) {
+                statsSpan.textContent = `(已過濾: ${data.filtered_count}/${data.total_count})`;
+              } else {
+                statsSpan.textContent = `(共 ${data.total_count} 個活動)`;
+              }
+            }
+          }
+        }
+
+        hasFiltersApplied() {
+          // 獲取當前的過濾條件
+          const searchTerm = document.getElementById("search-input").value;
+          const eventNameSearch =
+            document.getElementById("event-name-search").value;
+          const startDate = document.getElementById("start-date").value;
+          const endDate = document.getElementById("end-date").value;
+          const selectedCities = Array.from(
+            document.querySelectorAll("#city-checkboxes input:checked")
+          ).map((cb) => cb.value);
+
+          // 檢查是否有實際的過濾條件（排除預設日期範圍）
+          const isDefaultDateRange =
+            startDate === this.dateRange.min_date &&
+            endDate === this.dateRange.max_date;
+
+          return (
+            searchTerm ||
+            eventNameSearch ||
+            (!isDefaultDateRange && (startDate || endDate)) ||
+            selectedCities.length > 0
+          );
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        new MusicFestivalApp();
+      });
+    </script>
+  </body>
+</html>

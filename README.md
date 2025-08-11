@@ -1,96 +1,97 @@
-# 台湾音乐节搜索平台
+臺灣音樂節搜尋平台
+這是一個用於搜尋和探索臺灣各地音樂節活動的 Web 應用程式。該平台提供了豐富的篩選和搜尋功能，幫助使用者找到感興趣的音樂節活動。
 
-这是一个用于搜索和探索台湾各地音乐节活动的Web应用程序。该平台提供了丰富的过滤和搜索功能，帮助用户找到感兴趣的音乐节活动。
 
-![台湾音乐节搜索平台](https://via.placeholder.com/800x400?text=台湾音乐节搜索平台)
+功能特色
+🔍 多條件搜尋：按表演者、活動名稱、日期、地點進行篩選
 
-## 功能特点
+📊 資料視覺化：城市分佈圖與時間趨勢分析
 
-- 🔍 多条件搜索：按演出者、活动名称、日期、地点进行筛选
-- 📊 数据可视化：城市分布图和时间趋势分析
-- 📱 响应式设计：适配桌面和移动设备
-- 🎭 实时更新：显示最新的音乐节信息
+📱 響應式設計：適配桌面與行動裝置
 
-## 在线演示
+🎭 即時更新：顯示最新的音樂節資訊
 
-访问[台湾音乐节搜索平台](https://yourusername.github.io/taiwan-music-festival/)体验在线版本。
+線上示範
+前往 臺灣音樂節搜尋平台 體驗線上版本。
 
-## 本地运行
+本機執行
+前置條件
+Python 3.9+
 
-### 前提条件
+pip
 
-- Python 3.9+
-- pip
+安裝步驟
+複製此儲存庫
 
-### 安装步骤
+bash
+複製
+編輯
+git clone https://github.com/yourusername/taiwan-music-festival.git
+cd taiwan-music-festival
+安裝相依套件
 
-1. 克隆此仓库
-   ```bash
-   git clone https://github.com/yourusername/taiwan-music-festival.git
-   cd taiwan-music-festival
-   ```
+bash
+複製
+編輯
+pip install -r requirements.txt
+執行應用程式
 
-2. 安装依赖
-   ```bash
-   pip install -r requirements.txt
-   ```
+bash
+複製
+編輯
+python app.py
+在瀏覽器中開啟
 
-3. 运行应用
-   ```bash
-   python app.py
-   ```
+arduino
+複製
+編輯
+http://localhost:5000
+部署到其他平台
+部署到 Heroku
+安裝 Heroku CLI 並登入
 
-4. 在浏览器中访问
-   ```
-   http://localhost:5000
-   ```
+bash
+複製
+編輯
+heroku login
+建立 Heroku 應用
 
-## 部署到其他平台
+bash
+複製
+編輯
+heroku create your-app-name
+部署應用
 
-### 部署到Heroku
+bash
+複製
+編輯
+git push heroku main
+部署到 Vercel
+安裝 Vercel CLI
 
-1. 安装Heroku CLI并登录
-   ```bash
-   heroku login
-   ```
+bash
+複製
+編輯
+npm i -g vercel
+部署應用
 
-2. 创建Heroku应用
-   ```bash
-   heroku create your-app-name
-   ```
+bash
+複製
+編輯
+vercel
+技術堆疊
+後端：Flask (Python)
 
-3. 部署应用
-   ```bash
-   git push heroku main
-   ```
+前端：HTML, CSS, JavaScript, TailwindCSS
 
-### 部署到Vercel
+資料視覺化：Chart.js
 
-1. 安装Vercel CLI
-   ```bash
-   npm i -g vercel
-   ```
+響應式框架：Tailwind CSS
 
-2. 部署应用
-   ```bash
-   vercel
-   ```
+授權條款
+MIT
 
-## 技术栈
+聯絡方式
+如有任何問題或建議，請聯絡專案維護者。
 
-- 后端：Flask (Python)
-- 前端：HTML, CSS, JavaScript, TailwindCSS
-- 数据可视化：Chart.js
-- 响应式框架：Tailwind CSS
-
-## 许可证
-
-[MIT](LICENSE)
-
-## 联系方式
-
-如有任何问题或建议，请联系项目维护者。
-
----
-
-© 2025 台湾音乐节搜索 | 探索音乐，享受生活
+© 2025 臺灣音樂節搜尋 | 探索音樂，享受生活

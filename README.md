@@ -2,6 +2,7 @@
 
 這是一個用於搜尋和探索臺灣各地音樂節活動的 Web 應用程式。該平台提供了豐富的篩選和搜尋功能，幫助使用者找到感興趣的音樂節活動。
 
+![臺灣音樂節搜尋平台](https://via.placeholder.com/800x400?text=臺灣音樂節搜尋平台)
 
 ## 功能特色
 
@@ -27,3 +28,4 @@
    ```bash
    git clone https://github.com/yourusername/taiwan-music-festival.git
    cd taiwan-music-festival
+
